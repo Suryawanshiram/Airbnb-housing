@@ -1,15 +1,42 @@
-import React, { useRef, useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
 import Image from "next/image";
 import { LuMenu, LuSearch } from "react-icons/lu";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useAuthModal } from "@/store/useAuthModalStore";
+import { useCreateListingModal } from "@/store/useCreateListingModal";
 
 const Navbar = () => {
- const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
+  const { openRegister, openLogin } = useAuthModal();
+  const { open: openCreateListing } = useCreateListingModal();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    setOpen(false);
+    router.refresh();
+  };
+
   return (
-    <div className="fixed top-0 z-50 w-full h-18 lg:h-24 bg-white border-b border-gray-200">
+    <div className="fixed top-0 z-50 w-full h-18 lg:h-20 bg-white border-b border-gray-200 shadow-sm">
       <div className="flex items-center justify-between h-full mx-auto w-[95%] md:w-[60%]">
         <Logo />
 
@@ -35,10 +62,13 @@ const Navbar = () => {
           </div>
         </div>
 
-          {/* right navbar */}
+        {/* right navbar */}
         <div className="flex items-center gap-4 relative" ref={menuRef}>
           {session && !isPending && (
-            <button onClick={openCreateListing} className="hidden md:block text-sm font-medium px-4 py-2 rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100">
+            <button
+              onClick={openCreateListing}
+              className="hidden md:block text-sm font-medium px-4 py-2 rounded-full bg-gray-50 cursor-pointer hover:bg-gray-100"
+            >
               Airbnb your home
             </button>
           )}
@@ -51,94 +81,97 @@ const Navbar = () => {
               <LuMenu size={18} />
             </button>
 
-           {
-            session && (
-               <div className="relative w-8 h-8 rounded-full overflow-hidden">
-              {session.user.image ? (
-                <Image
-                src={session.user.image}
-                alt="user-avatar"
-                fill
-                className="object-cover"
-              />
-              ) : (
-                <Image
-                src="/images/image.png"
-                alt="user-avatar"
-                fill
-                className="object-cover"
-              />
-              )}
-            </div>
-            )
-           }
+            {session && (
+              <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                {session.user.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt="user-avatar"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <Image
+                    src="/images/image.png"
+                    alt="user-avatar"
+                    fill
+                    className="object-cover"
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
-          {/* dropdown menu */}
-          {open && (
-            <div className="absolute right-0 top-14 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden px-4 py-2">
-              <ul className="text-gray-800 text-sm">
-                {session && !isPending && (
-                  <>
-                   <li onClick={openCreateListing} className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                  Airbnb your home
-                </li>
+        {/* dropdown menu */}
+        {open && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-0 top-14 w-60 mr-16 lg:mr-32 my-3 lg:my-4 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden px-4 py-2"
+          >
+            <ul className="text-gray-800 text-sm">
+              {session && !isPending && (
+                <>
+                  <li
+                    // onClick={openCreateListing}
+                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Airbnb your home
+                  </li>
                   <Link href="/favorites">
-                   <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                  Your favorites
-                </li>
+                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                      Your favorites
+                    </li>
                   </Link>
                   <Link href="/reservations">
-                   <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                  Your Reservations
-                </li>
+                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                      Your Reservations
+                    </li>
                   </Link>
                   <Link href="/properties">
-                   <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                  Your Properties
-                </li>
+                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                      Your Properties
+                    </li>
                   </Link>
                   <Link href="/trips">
-                   <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                  Your Trips
-                </li>
+                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                      Your Trips
+                    </li>
                   </Link>
-                  </>
-                )}
-               
-                <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                  Help Center
-                </li>
-                <div className="border-t my-1 border-gray-300" />
+                </>
+              )}
 
-                {session ? (
-                   <li
+              <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                Help Center
+              </li>
+              <div className="border-t my-1 border-gray-300" />
+
+              {session ? (
+                <li
                   onClick={handleLogout}
                   className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
                 >
                   Logout
                 </li>
-                ) : (
-
-                  <>
-                   <li
-                  onClick={() => openRegister()}
-                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                >
-                  Sign up
-                </li>
-                <li
-                  onClick={() => openLogin()}
-                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                >
-                  Sign in
-                </li>
-                  </>
-                )}
-               
-              </ul>
-            </div>
-          )}
+              ) : (
+                <>
+                  <li
+                    onClick={() => openRegister()}
+                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Sign up
+                  </li>
+                  <li
+                    onClick={() => openLogin()}
+                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Sign in
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

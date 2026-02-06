@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
+import RegisterModal from "@/modals/RegisterModal";
+import LoginModal from "@/modals/LoginModal";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -11,7 +13,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Airbnb clone",
-  description: "Airbnb clone tutorial EgbonTech",
+  description: "Airbnb clone tutorial by techie",
 };
 
 export default function RootLayout({
@@ -24,6 +26,8 @@ export default function RootLayout({
       <body className={`${poppins.className} antialiased`}>
         <Navbar />
         <div className="mt-18 lg:mt-24 px-4 md:px-20 py-2">{children}</div>
+        <RegisterModal />
+        <LoginModal />
       </body>
     </html>
   );
