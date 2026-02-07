@@ -1,22 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Logo from "./Logo";
 import Image from "next/image";
+import Logo from "./Logo";
 import { LuMenu, LuSearch } from "react-icons/lu";
-import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useAuthModal } from "@/store/useAuthModalStore";
+import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCreateListingModal } from "@/store/useCreateListingModal";
+import { useFilterModal } from "@/store/useFilterListingModal";
 
-const Navbar = () => {
+export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const { openRegister, openLogin } = useAuthModal();
   const { open: openCreateListing } = useCreateListingModal();
+  const { open: openFilterModal } = useFilterModal();
+  const router = useRouter();
+
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -25,38 +28,43 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
+    document.addEventListener("mousedown", handler);
+
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleLogout = async () => {
     await authClient.signOut();
-    setOpen(false);
     router.refresh();
   };
-
   return (
-    <div className="fixed top-0 z-50 w-full h-18 lg:h-20 bg-white border-b border-gray-200 shadow-sm">
-      <div className="flex items-center justify-between h-full mx-auto w-[95%] md:w-[60%]">
+    <nav className="fixed top-0 z-50 w-full h-18 lg:h-24 bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between h-full mx-auto w-[95%] md:w-[90%]">
         <Logo />
 
-        {/* Center Nav */}
-        <div className="flex items-center gap-4 px-4 py-2 shadow-md border border-slate-200 rounded-full cursor-pointer">
-          <Image
-            src="/images/home.png"
-            alt="home-icon"
-            width={25}
-            height={25}
-          />
-          <span className="hidden lg:block">Anywhere</span>
-          <span className="h-6 w-px bg-gray-300 hidden lg:block" />
-          <span className="hidden lg:block text-sm font-medium text-gray-700">
-            AnyWeek
+        {/* center navbar */}
+        <div
+          onClick={openFilterModal}
+          className="flex items-center gap-3 px-4 py-2 shadow-md border border-gray-200 rounded-full cursor-pointer"
+        >
+          <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Image
+              src="/images/home.png"
+              alt="home-icon"
+              width={25}
+              height={25}
+            />
+            <span className="hidden lg:block">Anywhere</span>
           </span>
-          <span className="h-6 w-px bg-gray-300 hidden lg:block" />
-          <span className="hidden lg:block text-sm font-medium text-gray-700">
-            Add Guest
+          <span className="h-6 w-px bg-gray-300 hidden md:block" />
+          <span className="hidden md:block text-sm font-medium text-gray-700">
+            Any week
           </span>
+          <span className="h-6 w-px bg-gray-300 hidden md:block" />
+          <span className="hidden md:block text-sm text-gray-500">
+            Add guests
+          </span>
+
           <div className="w-8 h-8 text-white rounded-full bg-primary grid place-items-center">
             <LuSearch size={16} />
           </div>
@@ -101,79 +109,75 @@ const Navbar = () => {
               </div>
             )}
           </div>
-        </div>
-        {/* dropdown menu */}
-        {open && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="absolute right-0 top-14 w-60 mr-16 lg:mr-32 my-3 lg:my-4 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden px-4 py-2"
-          >
-            <ul className="text-gray-800 text-sm">
-              {session && !isPending && (
-                <>
-                  <li
-                    onClick={openCreateListing}
-                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                  >
-                    Airbnb your home
-                  </li>
-                  <Link href="/favorites">
-                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                      Your favorites
-                    </li>
-                  </Link>
-                  <Link href="/reservations">
-                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                      Your Reservations
-                    </li>
-                  </Link>
-                  <Link href="/properties">
-                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                      Your Properties
-                    </li>
-                  </Link>
-                  <Link href="/trips">
-                    <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                      Your Trips
-                    </li>
-                  </Link>
-                </>
-              )}
 
-              <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
-                Help Center
-              </li>
-              <div className="border-t my-1 border-gray-300" />
+          {/* dropdown menu */}
+          {open && (
+            <div className="absolute right-0 top-14 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden px-4 py-2">
+              <ul className="text-gray-800 text-sm">
+                {session && !isPending && (
+                  <>
+                    <li
+                      onClick={openCreateListing}
+                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Airbnb your home
+                    </li>
+                    <Link href="/favorites">
+                      <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                        Your favorites
+                      </li>
+                    </Link>
+                    <Link href="/reservations">
+                      <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                        Your Reservations
+                      </li>
+                    </Link>
+                    <Link href="/properties">
+                      <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                        Your Properties
+                      </li>
+                    </Link>
+                    <Link href="/trips">
+                      <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                        Your Trips
+                      </li>
+                    </Link>
+                  </>
+                )}
 
-              {session ? (
-                <li
-                  onClick={handleLogout}
-                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                >
-                  Logout
+                <li className="px-4 py-3 hover:bg-gray-100 cursor-pointer">
+                  Help Center
                 </li>
-              ) : (
-                <>
-                  <li
-                    onClick={() => openRegister()}
-                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                  >
-                    Sign up
-                  </li>
-                  <li
-                    onClick={() => openLogin()}
-                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
-                  >
-                    Sign in
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+                <div className="border-t my-1 border-gray-300" />
 
-export default Navbar;
+                {session ? (
+                  <li
+                    onClick={handleLogout}
+                    className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                  >
+                    Logout
+                  </li>
+                ) : (
+                  <>
+                    <li
+                      onClick={() => openRegister()}
+                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Sign up
+                    </li>
+                    <li
+                      onClick={() => openLogin()}
+                      className="px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Sign in
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
