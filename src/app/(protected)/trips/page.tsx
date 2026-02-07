@@ -1,11 +1,11 @@
-import PropertiesPage from "@/components/properties/PropertiesPage";
 import ListingCardSkeleton from "@/components/skeletons/ListingCardSkeleton";
+import TripsPage from "@/components/trips/TripsPage";
 import { Suspense } from "react";
 
 export default function Page() {
   return (
     <Suspense fallback={<ListingCardSkeleton />}>
-      <PropertiesPage />
+      <TripsPage />
     </Suspense>
   );
 }
